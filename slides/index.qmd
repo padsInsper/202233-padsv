@@ -1,0 +1,52 @@
+---
+title: "Prática Avançada de Data Science e Visualization"
+author: "Insper 2022-33"
+format: revealjs
+---
+
+## Sobre mim
+
+Meu nome é Julio. Eu gosto de MasterChef
+
+![](masterchef.gif)
+
+## Sobre mim
+
+Eu não gosto de 
+
+- Captchas 
+- tretas R vs python
+
+![](captcha.jpg){.absolute left=25% bottom=10% width=50%}
+
+
+
+## Meu papel
+
+Meu papel nessa disciplina será ajudar no aprendizado da parte técnica -- códigos etc. 
+
+::: {.incremental}
+
+- Também posso dar pitacos nas apresentações e salvá-los em situações de desespero (atendimentos extras).
+
+:::
+
+## Lab 01
+
+Nesse lab, nosso objetivo será construir soluções em **R** e **python** para problemas comuns de transformação de dados.
+
+::: {.incremental}
+
+- Equipes de **3 pessoas**. Começaremos com uma alocação por afinidade. Dependendo dos resultados, realocamos.
+
+- Eu serei o Google. Na parte do R, verificarei se vocês fizeram tudo certo. Na parte do python, vocês vão me ensinar.
+
+- No final de cada exercício, discutiremos aspectos teóricos sobre as ferramentas (se necessário).
+
+:::
+
+## Prêmios
+
+- As melhores resoluções receberão stickers. A quantidade de stickers depende da dificuldade do exercício.
+
+![](stickers.jpg){.absolute left=25% bottom=10vh width=50%}
