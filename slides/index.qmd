@@ -1,7 +1,9 @@
 ---
 title: "Prática Avançada de Data Science e Visualization"
 author: "Insper 2022-33"
-format: revealjs
+format: 
+  revealjs:
+    self-contained: true
 ---
 
 ## Sobre mim
