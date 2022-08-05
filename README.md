@@ -26,9 +26,6 @@ Materiais públicos da disciplina de Prática Avançada de Data Science E Visual
 ## Exercícios
 
 - Transformações básicas
-- Joins
 - Pivotagem
-- Vetores
-    - stringr
-    - forcats
-- Gráficos
+- Joins
+- Feature engineering
