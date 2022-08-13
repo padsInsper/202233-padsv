@@ -381,6 +381,131 @@ knitr::include_graphics("ex01.png")
 
 - As `geom_label()` ficam na metade da altura da barra.
 
+#### Código
+
+```{r}
+#| eval: false
+#| echo: true
+#' Author:
+#' Subject:
+
+
+# Import -----------------------------------------------------------------------
+# readr::write_rds(d, "")
+
+library(ggplot2)
+
+
+# grafico 1 ---------------------------------------------------------------
+
+
+items |> 
+  dplyr::count(types) |> 
+  dplyr::mutate(types = forcats::fct_reorder(types, n)) |> 
+  dplyr::filter(n > 100) |> 
+  dplyr::mutate(n = n/1000) |> 
+  ggplot(aes(x = n, y = types)) +
+  geom_col(fill = "#8ae3d7", width = .5) +
+  geom_label(aes(label = round(n, 2), x = n/2)) +
+  theme_dark(16) +
+  labs(
+    x = "Quantidade\n(milhares)",
+    y = "Forma de pagamento",
+    title = "Formas de pagamento mais comuns",
+    subtitle = "Considerando tipos com mais de 100 observações",
+    caption = "Fonte: Olist"
+  ) +
+  theme(
+    panel.background = element_rect(fill = "gray20"),
+    plot.background = element_rect(fill = "gray10"),
+    text = element_text(family = "serif", colour = "white"),
+    axis.text = element_text(family = "serif", colour = "white"),
+    panel.grid.minor = element_blank()
+  )
+
+
+# grafico 2 ---------------------------------------------------------------
+
+items |> 
+  dplyr::mutate(
+    data = as.Date(order_purchase_timestamp),
+    data = lubridate::floor_date(data, "month"),
+    estado = forcats::fct_other(
+      seller_state, 
+      keep = c("SP", "RJ"), 
+      other_level = "Outros"
+    )
+  ) |>
+  dplyr::filter(
+    data >= "2017-01-01",
+    data <= "2018-07-01"
+  ) |> 
+  dplyr::count(data, estado) |> 
+  ggplot() +
+  aes(x = data, y = n, colour = estado) +
+  geom_line(size = 2) +
+  scale_color_viridis_d(begin = .2, end = .8) +
+  labs(
+    x = "Data", 
+    y = "Quantidade", 
+    title = "São Paulo tem mais vendas",
+    subtitle = "O que é esperado, pois a população é maior 😬",
+    caption = "Fonte: Olist",
+    color = "Estado"
+  ) +
+  scale_x_date(
+    date_breaks = "3 month", 
+    date_labels = "%b\n%Y"
+  ) +
+  theme_light(15) +
+  theme(
+    legend.position = "bottom"
+  )
+  
+
+# grafico 04 --------------------------------------------------------------
+
+estados <- geobr::read_state()
+
+set.seed(42)
+items |> 
+  dplyr::count(
+    seller_state,
+    geolocation_lat_seller,
+    geolocation_lng_seller,
+    geolocation_lat_customer,
+    geolocation_lng_customer
+  ) |> 
+  dplyr::filter(seller_state %in% c("SP", "MG", "RJ")) |> 
+  dplyr::slice_sample(n = 1000) |> 
+  ggplot() +
+  geom_sf(data = estados, fill = "gray95", size = .1) +
+  geom_curve(
+    mapping = aes(
+      x = geolocation_lng_seller,
+      y = geolocation_lat_seller,
+      xend = geolocation_lng_customer,
+      yend = geolocation_lat_customer
+    ), 
+    arrow = arrow(length = unit(0.1, "inches")),
+    curvature = .2,
+    alpha = .2,
+    colour = "royalblue"
+  ) +
+  facet_wrap(~seller_state, strip.position = "bottom") +
+  theme_void(base_size = 16) +
+  labs(
+    title = "Para onde vão as compras?",
+    subtitle = "Comparando São Paulo, Minas Gerais e Rio de Janeiro",
+    caption = "Fonte: Olist"
+  ) 
+
+
+
+
+```
+
+
 :::
 
 ---
@@ -402,6 +527,59 @@ knitr::include_graphics("ex02.png")
 - Usar `scale_x_date()`
 
 - Estudar `scale_color_viridis_d()`
+
+- `lubridate::floor_date()` para aproximar datas
+
+- `case_when()` ou `fct_other()` para reclassificar uma variável categórica
+
+- filtrar a base para o intervalo de datas entre "2017-01-01" e "2018-07-01"
+
+- devemos contar/agrupar por `data` (mês) e `estado`
+
+#### Código
+
+```{r}
+#| eval: false
+#| echo: true
+
+items |> 
+  dplyr::mutate(
+    data = as.Date(order_purchase_timestamp),
+    data = lubridate::floor_date(data, "month"),
+    estado = forcats::fct_other(
+      seller_state, 
+      keep = c("SP", "RJ"), 
+      other_level = "Outros"
+    )
+  ) |>
+  dplyr::filter(
+    data >= "2017-01-01",
+    data <= "2018-07-01"
+  ) |> 
+  dplyr::count(data, estado) |> 
+  ggplot() +
+  aes(x = data, y = n, colour = estado) +
+  geom_line(size = 2) +
+  scale_color_viridis_d(begin = .2, end = .8) +
+  labs(
+    x = "Data", 
+    y = "Quantidade", 
+    title = "São Paulo tem mais vendas",
+    subtitle = "O que é esperado, pois a população é maior 😬",
+    caption = "Fonte: Olist",
+    color = "Estado"
+  ) +
+  scale_x_date(
+    date_breaks = "3 month", 
+    date_labels = "%b\n%Y"
+  ) +
+  theme_light(15) +
+  theme(
+    legend.position = "bottom"
+  )
+
+```
+
 
 :::
 
@@ -430,6 +608,57 @@ knitr::include_graphics("ex03.png")
 
 - Para fazer os reais, use a função `scales::scales_dollar_format()`.
 
+#### Código
+
+```{r}
+#| eval: false
+#| echo: true
+
+items_agg <- items |> 
+  group_by(product_category_name) |> 
+  filter(n() > 4000) |> 
+  ungroup() |> 
+  mutate(
+    product_category_name = fct_reorder(
+      product_category_name, price, median
+    ),
+    relogios = ifelse(
+      product_category_name == "relogios_presentes",
+      "destacar", "não destacar"
+    )
+  )
+
+mediana <- items_agg |> 
+  summarise(mediana = median(price))
+
+items_agg |> 
+  ggplot() +
+  aes(x = price, y = product_category_name, fill = relogios) +
+  ggridges::geom_density_ridges(
+    quantile_lines = TRUE,
+    quantiles = 2,
+    na.rm = FALSE,
+    n = 2048, 
+    show.legend = FALSE
+  ) +
+  scale_x_continuous(
+    limits = c(0, NA),
+    labels = scales::dollar_format(prefix = "R$")
+  ) +
+  coord_cartesian(xlim = c(0, 300)) +
+  geom_vline(
+    aes(xintercept = mediana), 
+    data = mediana,
+    linetype = 2,
+    colour = "red"
+  ) + 
+  scale_fill_manual(
+    values = c("#6686e6", "#eaeaea")
+  ) +
+  theme_minimal()
+```
+
+
 :::
 
 ---
@@ -457,6 +686,50 @@ knitr::include_graphics("ex04.png")
 - Estamos desenhando CURVAS
 
 - Use facets
+
+#### Código
+
+```{r}
+#| echo: true
+#| eval: false
+
+estados <- geobr::read_state()
+
+set.seed(42)
+items |> 
+  dplyr::count(
+    seller_state,
+    geolocation_lat_seller,
+    geolocation_lng_seller,
+    geolocation_lat_customer,
+    geolocation_lng_customer
+  ) |> 
+  dplyr::filter(seller_state %in% c("SP", "MG", "RJ")) |> 
+  dplyr::slice_sample(n = 1000) |> 
+  ggplot() +
+  geom_sf(data = estados, fill = "gray95", size = .1) +
+  geom_curve(
+    mapping = aes(
+      x = geolocation_lng_seller,
+      y = geolocation_lat_seller,
+      xend = geolocation_lng_customer,
+      yend = geolocation_lat_customer
+    ), 
+    arrow = arrow(length = unit(0.1, "inches")),
+    curvature = .2,
+    alpha = .2,
+    colour = "royalblue"
+  ) +
+  facet_wrap(~seller_state, strip.position = "bottom") +
+  theme_void(base_size = 16) +
+  labs(
+    title = "Para onde vão as compras?",
+    subtitle = "Comparando São Paulo, Minas Gerais e Rio de Janeiro",
+    caption = "Fonte: Olist"
+  ) 
+
+```
+
 
 :::
 
