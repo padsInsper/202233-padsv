@@ -4,9 +4,23 @@ author: "Insper 2022-33"
 format: 
   revealjs:
     self-contained: true
+    hash-type: number
+    footer: "2022"
+    logo: logo.png
+    theme: [simple, custom.scss]
+execute:
+  freeze: true
 ---
 
 ## Sobre mim
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+library(tidyverse)
+library(dados)
+```
 
 Meu nome é Julio. Eu gosto de MasterChef
 
@@ -14,41 +28,435 @@ Meu nome é Julio. Eu gosto de MasterChef
 
 ## Sobre mim
 
-Eu não gosto de 
+Eu não gosto de
 
-- Captchas 
-- tretas R vs python
+-   Captchas
+-   tretas R vs python
 
-![](captcha.jpg){.absolute left=25% bottom=10% width=50%}
-
-
+![](captcha.jpg){.absolute left="25%" bottom="10%" width="50%"}
 
 ## Meu papel
 
-Meu papel nessa disciplina será ajudar no aprendizado da parte técnica -- códigos etc. 
+Meu papel nessa disciplina será ajudar no aprendizado da parte técnica -- códigos etc.
 
-::: {.incremental}
-
-- Também posso dar pitacos nas apresentações e salvá-los em situações de desespero (atendimentos extras).
-
+::: incremental
+-   Também posso dar pitacos nas apresentações e salvá-los em situações de desespero (atendimentos extras).
 :::
 
 ## Lab 01
 
 Nesse lab, nosso objetivo será construir soluções em **R** e **python** para problemas comuns de transformação de dados.
 
-::: {.incremental}
+::: incremental
+-   Equipes de **3 pessoas**. Começaremos com uma alocação por afinidade. Dependendo dos resultados, realocamos.
 
-- Equipes de **3 pessoas**. Começaremos com uma alocação por afinidade. Dependendo dos resultados, realocamos.
+-   Eu serei o Google. Na parte do R, verificarei se vocês fizeram tudo certo. Na parte do python, vocês vão me ensinar.
 
-- Eu serei o Google. Na parte do R, verificarei se vocês fizeram tudo certo. Na parte do python, vocês vão me ensinar.
-
-- No final de cada exercício, discutiremos aspectos teóricos sobre as ferramentas (se necessário).
-
+-   No final de cada exercício, discutiremos aspectos teóricos sobre as ferramentas (se necessário).
 :::
 
 ## Prêmios
 
-- As melhores resoluções receberão stickers. A quantidade de stickers depende da dificuldade do exercício.
+-   As melhores resoluções receberão stickers. A quantidade de stickers depende da dificuldade do exercício.
 
-![](stickers.jpg){.absolute left=25% bottom=10vh width=50%}
+![](stickers.jpg){.absolute left="25%" bottom="10vh" width="50%"}
+
+## Vamos lá!
+
+![](cat.gif){.absolute left="25%" bottom="10vh" width="50%"}
+
+## Exercício 1 (transformação) 🛑
+
+::: panel-tabset
+### Entrada
+
+```{r}
+#| echo: true
+pinguins
+```
+
+### Tarefa
+
+-   Selecionar especie, ilha, comprimento do bico
+-   Filtrar valores vazios
+-   Agrupar por espécie
+-   Calcular média e mediana
+-   Calcular a diferença absoluta da média e mediana
+
+### Saída R
+
+```{r}
+#| echo: false
+res <- pinguins |> 
+  select(especie, ilha, comprimento_bico) |> 
+  filter(!is.na(comprimento_bico)) |> 
+  # drop_na(comprimento_bico) |> 
+  group_by(especie) |> 
+  summarise(
+    media = mean(comprimento_bico),
+    mediana = median(comprimento_bico)
+  ) |> 
+  arrange(desc(mediana)) |> 
+  mutate(diferenca = abs(media - mediana))
+res
+```
+
+### Saída Python
+
+```{python}
+#| echo: false
+#| eval: false
+
+import pandas as pd
+
+media = r.pinguins[['especie', 'comprimento_bico']].dropna().groupby('especie').mean().rename(columns = {"comprimento_bico" : "media"})
+
+mediana = r.pinguins[['especie', 'comprimento_bico']].dropna().groupby('especie').median().rename(columns = {"comprimento_bico" : "mediana"})
+
+tabela = pd.merge(media, mediana, on = ['especie'], how = 'left')
+
+tabela['dif'] = abs(tabela['media'] - tabela['mediana'])
+
+tabela.sort_values('dif', ascending = False)
+
+pinguins = r.pinguins
+
+pinguins['comprimento_bico2'] = pinguins['comprimento_bico']
+
+tabela = pinguins[["especie", "comprimento_bico", "comprimento_bico2"]].dropna().groupby("especie").agg({"comprimento_bico":"mean", "comprimento_bico2":"median"}).reset_index().rename(columns = {"comprimento_bico":"media", "comprimento_bico2":"mediana"}).
+
+
+tabela['dif'] = abs(tabela['media'] - tabela['mediana'])
+tabela.sort_values('dif', ascending = False)
+```
+:::
+
+## Exercício 2 (pivotagem) 🛑🛑
+
+::: panel-tabset
+### Entrada
+
+```{r}
+dados_oms
+```
+
+### Tarefa
+
+-   empilhar as colunas "novos_fpp", jogando as outras "novos\_\*" fora
+-   filtrar ano maior ou igual a 2008 e países do resultado
+-   agrupar por país e ano
+-   somar a quantidade total de casos
+-   jogar a coluna ano nas colunas
+
+### Saída R
+
+```{r}
+res <- dados_oms |> 
+  pivot_longer(starts_with("novos_fpp")) |> 
+  select(-contains("novos")) |> 
+  filter(
+    ano >= 2008, 
+    !is.na(value),
+    pais %in% c("Estados Unidos", "Brasil", "Índia")
+  ) |> 
+  select(pais, ano, value) |>
+  pivot_wider(
+    names_from = ano, 
+    values_from = value,
+    values_fn = sum
+  )
+  
+res
+```
+
+### Saída Python
+
+```{python}
+import pandas as pd
+pd.set_option('display.max_columns', None)
+r.res
+```
+:::
+
+## Exercício 3 (joins) 🛑🛑🛑🛑
+
+::: panel-tabset
+### Entrada
+
+::: {style="overflow:auto;height:450px"}
+```{r}
+#| echo: true
+print(clima, n = 1)
+print(aeroportos, n = 1)
+print(companhias_aereas, n = 1)
+print(avioes, n = 1)
+print(voos, n = 1)
+```
+:::
+
+### Tarefa
+
+-   juntar voos, clima, companhias aéreas e aviões
+-   retirar fabricante vazio e retirar origem "EWR"
+-   agrupar por fabricante, nome e origem
+-   obter quantidade de vôos e temperatura média
+-   ordenar pela quantidade
+-   mostrar resultados com \> 5 mil observações
+
+### Saída R
+
+```{r}
+#| echo: false
+res <- voos |> 
+  left_join(
+    clima,
+    c("ano", "mes", "dia", "hora", "origem")
+  ) |> 
+  left_join(companhias_aereas, "companhia_aerea") |> 
+  left_join(avioes, c("cauda" = "codigo_cauda")) |> 
+  filter(!is.na(fabricante), origem != "EWR") |> 
+  group_by(fabricante, nome, origem) |> 
+  summarise(
+    n = n(), 
+    .groups = "drop",
+    temperatura_media = mean(temperatura, na.rm = TRUE)
+  ) |> 
+  arrange(desc(n)) |> 
+  filter(n > 5000)
+
+res
+```
+
+### Saída Python
+
+```{python}
+#| echo: false
+r.res
+```
+:::
+
+## Exercício 4 (feat eng) 🛑🛑🛑🛑🛑
+
+::: panel-tabset
+### Objetivo
+
+-   Melhorar o poder preditivo do modelo sem mudar nada na parte da modelagem
+-   Vamos mexer apenas nas preditoras
+
+### Base de dados
+
+```{r}
+#| echo: true
+voos_select <- voos |> 
+  select(
+    ano, mes, dia, hora,
+    companhia_aerea, cauda,
+    origem, destino,
+    y = atraso_saida
+  ) |> 
+  drop_na(y)
+
+voos_select
+```
+
+### Função objetivo
+
+```{r}
+#| cache: true
+#| echo: true
+#| code-line-numbers: "|1-4|6-10|12-13|15-19"
+set.seed(1)
+split <- rsample::initial_split(voos_select, prop = .8)
+treino <- rsample::training(split)
+teste <- rsample::testing(split)
+
+feat_eng <- function(dados) {
+  # ...exercicio...
+  dados |> 
+    select(-cauda)
+}
+
+treino_eng <- feat_eng(treino)
+teste_eng <- feat_eng(teste) # cuidado
+
+modelo <- parsnip::rand_forest("regression", trees = 20) |>  
+  parsnip::set_engine("ranger")
+fitted <- parsnip::fit(modelo, y ~ ., data = treino_eng)
+preds <- predict(fitted, new_data = teste_eng)
+result_antes <- yardstick::rmse_vec(teste_eng$y, preds$.pred)
+```
+
+### Meta
+
+Resultado antes:
+
+```{r}
+#| echo: false
+#| cache: true
+result_antes
+```
+
+Resultado depois:
+
+```{r}
+#| echo: false
+#| cache: true
+feat_eng <- function(dados) {
+  dados |> 
+    left_join(
+      clima,
+      c("ano", "mes", "dia", "hora", "origem")
+    ) |> 
+    left_join(companhias_aereas, "companhia_aerea") |> 
+    left_join(avioes, c("cauda" = "codigo_cauda")) |> 
+    select(
+      -ano.x, -cauda, -data_hora, -ano.y,
+      -velocidade, -velocidade_rajada,
+      -tipo, -fabricante, -modelo, -tipo_motor
+    ) |> 
+    mutate(across(
+      where(is.numeric),
+      replace_na, 5
+    ))
+}
+
+treino_eng <- feat_eng(treino)
+teste_eng <- feat_eng(teste) # cuidado
+
+modelo <- parsnip::rand_forest("regression", trees = 20) |>  
+  parsnip::set_engine("ranger")
+fitted <- parsnip::fit(modelo, y ~ ., data = treino_eng)
+preds <- predict(fitted, new_data = teste_eng)
+yardstick::rmse_vec(teste_eng$y, preds$.pred)
+```
+:::
+
+# Lab 02 - ggplot2
+
+## Lab 02
+
+Nesse lab, nosso objetivo será construir soluções em ggplot2 para gráficos estatísticos.
+
+-   Os grupos são os que montamos para o trabalho final.
+
+-   As tarefas serão imitar um gráfico que eu montei para vocês usando ggplot2. Eu mostrarei apenas a imagem. Posso dar dicas no meio do caminho.
+
+-   O grupo que conseguir fazer o gráfico primeiro ganhará **prêmios**.
+
+-   Quem fizer versões em python dos gráficos para me ensinar ganhará **prêmios**.
+
+## Base olist
+
+Utilizaremos a base de dados da **olist**, para que vocês possam aproveitar os trabalhos nas atividades integradoras.
+
+::: incremental
+-   Teoricamente, vocês já têm uma base de dados arrumada em mãos, por conta dos exercícios do curso de Design.
+
+-   Para garantir que as visualizações funcionam, no entanto, disponibilizei uma base que eu montei (pode conter erros) [no material dos labs](https://github.com/padsInsper/202233-padsv/raw/main/material.zip).
+
+-   A base está tanto em `.parquet` (usar pacote [`{arrow}`](https://arrow.apache.org/docs/r/) quanto em `.rds`. Use a que for mais confortável.
+
+-   Se quiser usar sua própria base, sem problemas!
+:::
+
+---
+
+#### Exercício 01 🍪
+
+::: panel-tabset
+
+#### Resultado esperado
+
+```{r}
+#| fig-align: center
+#| out-width: 90%
+knitr::include_graphics("ex01.png")
+```
+
+#### Dicas
+
+- Usar a coluna `types`
+
+- Estudar a função `theme()`
+
+- As `geom_label()` ficam na metade da altura da barra.
+
+:::
+
+---
+
+#### Exercício 02 🍪🍪
+
+::: panel-tabset
+
+#### Resultado esperado
+
+```{r}
+#| fig-align: center
+#| out-width: 90%
+knitr::include_graphics("ex02.png")
+```
+
+#### Dicas
+
+- Usar `scale_x_date()`
+
+- Estudar `scale_color_viridis_d()`
+
+:::
+
+
+---
+
+#### Exercício 03 🍪🍪🍪
+
+::: panel-tabset
+
+#### Resultado esperado
+
+```{r}
+#| fig-align: center
+#| out-width: 90%
+knitr::include_graphics("ex03.png")
+```
+
+#### Dicas
+
+- Usar o pacote `{ggridges}`.
+
+- Para pintar apenas uma categoria, crie uma coluna.
+
+- Para anotações no gráfico (como "Mediana"), use a função `annotate()`.
+
+- Para fazer os reais, use a função `scales::scales_dollar_format()`.
+
+:::
+
+---
+
+#### Exercício 04 🍪🍪🍪🍪
+
+::: panel-tabset
+
+#### Resultado esperado
+
+```{r}
+#| fig-align: center
+#| out-width: 90%
+knitr::include_graphics("ex04.png")
+```
+
+#### Dicas
+
+- Faça uma amostra de 1000 observações dos dados, com `set.seed(42)`
+
+- Para obter o mapa, usar o pacote `{geobr}`
+
+- Para plotar o mapa, usar a função `geom_sf()`
+
+- Estamos desenhando CURVAS
+
+- Use facets
+
+:::
+
