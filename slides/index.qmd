@@ -733,3 +733,394 @@ items |>
 
 :::
 
+# Lab 02 - shiny e flexdashboard
+
+## {flexdashboard} {.smaller}
+
+O pacote `flexdashboard` oferece um layout de R Markdown para construir dashboards estáticos diretamente do R.
+
+Um dashboard estático é aquele que não exige um servidor com uma sessão de R rodando por trás. Dashboards gerados com `flexdashboard` são apenas um arquivo `.html`, que pode ser enviado para qualquer usuário e tudo o que ele precisará para abrir o arquivo é um navegador (Firefox, Chrome etc), isto é, ele não precisará do R ou RStudio instalado na máquina dele para visualizar o seu trabalho.
+
+Por usar RMarkdown, tudo o que precisaremos aprender para construir um flexdashboard é qual marcação deveremos usar para construir cada elemento do dashboard.
+
+## Shiny {.smaller}
+
+Shiny é um framework em linguagem R para a criação de aplicativos web. Por não exigir conhecimento prévio de HTML, CSS e JavaScript, ele democratiza o acesso a essa área de desenvolvimento, permitindo a criação de aplicativos bonitos e complexos a partir de um script R.
+
+Um aplicativo Shiny pode ser reduzido a vários elementos:
+
+- uma página web: ele será acessado por um navegador, possuirá um endereço (URL) e será constituído por HTML, CSS e JavaScript.
+
+- um aplicativo web: permitirá que quem estiver acessando intereja com as visualizações apresentadas.
+
+- um código (ou uma coleção de códigos) em linguagem R: construídos, sobretudo, com o pacote `{shiny}`.
+
+## Diferenças entre flexdashboard e shiny {.smaller}
+
+Por ser estático, o flexdashboard permite o compartilhamento dos resultados como arquivo, podendo ser passado como anexo. No entanto, ele tem limitações na customização e em poder computacional.
+
+> O [flexdashboard](https://curso-r.github.io/main-dashboards/archive/extra-flexdashboard.html#2) é indicado para __apresentações__.
+
+Já o shiny é muito mais robusto e completo, permitindo fazer quaisquer interações entre o R e a web. É mais difícil de programar e precisa de um servidor na nuvem para rodar. O deploy é bem fácil, mas necessário.
+
+> O flexdashboard é indicado para __produtos__.
+
+## E o python?
+
+![Neymar falando sobre python](neymar.jpg)
+## Python para shiny!
+
+<center>
+### [https://shiny.rstudio.com/py](https://shiny.rstudio.com/py)
+</center>
+
+Conta ainda com uma versão "shinylive", permitindo rodar shiny diretamente do navegador 🤩
+
+Alternativa: [Dash (plotly)](https://plotly.com/)
+
+## Componentes básicos {.smaller}
+
+Um aplicativo Shiny tem dois componentes básicos: a **interface de usuário** e o **servidor**.
+
+- Construção do código HTML que compõe o app. Podemos pensar na programação desse código HTML como a construção daquilo que será mostrado na tela, a cara do seu app, a interface de usuário ou **UI** (sigla para o termo *user interface*, em inglês).
+
+- Coisas que não serão vistas por quem utilizar o app: o **servidor**. O lado do servidor (*server side* ou simplesmente *server*, em inglês) contém toda a lógica para a construção das saídas apresentadas na UI.
+
+## A UI
+
+A figura a seguir mostra a UI de um app bem simples, que permite a escolha de duas variáveis e apresenta o gráfico de dispersão delas:
+
+```{r, echo = FALSE}
+knitr::include_graphics("img/app_penguins_disp.png")
+```
+
+## O servidor {.smaller}
+
+Embora precisemos aprender alguns conceitos e regras novas, a maior parte do código que compõe o servidor é aquele bom e velho R que já utilizamos no dia-a-dia para gerar tabelas, gráficos e qualquer outro tipo de visualização. 
+
+> Em resumo, para fazer um ggplot aparecer no Shiny, basta adaptar o código que gera esse gráfico para receber as entradas de quem estiver usando o app (*inputs*) e devolver o resultado (*output*) no *lugar* adequado.
+
+- Na figura do slide anterior, o código que gera o gráfico de dispersão fica dentro do servidor.
+
+## Juntando tudo
+
+```{r, echo = FALSE, out.width="90%", fig.align='center'}
+knitr::include_graphics("img/esquema_ui_servidor.png")
+```
+
+## Estrutura de um código Shiny
+
+O código de qualquer aplicativo em Shiny terá a estrutura abaixo:
+
+- Um objeto chamado `ui`.
+
+- Uma função chamada `server`.
+
+- Uma chamada da função `shinyApp()`.
+
+```{r, eval=FALSE}
+library(shiny)
+
+ui <- fluidPage("Olá, mundo!")
+
+server <- function(input, output, session) {
+  
+}
+
+shinyApp(ui, server)
+```
+
+## UI: o que o usuário vê {.smaller}
+
+No objeto `ui`, construímos o que será mostrado na tela para o usuário. Nele, devemos:
+
+- Construir o layout do aplicativo.
+
+- Definir quais visualizações serão mostradas (tabelas, gráficos, mapas etc).
+
+- Definir elementos de CSS e JavaScript. **[avançado]**
+
+Todas as funções que utilizarmos para criar o `ui` retornarão código HTML. O objeto `ui`, portanto, será um grande código HTML.
+
+```{r, eval=FALSE}
+ui <- fluidPage("Olá, mundo!")
+#> <div class="container-fluid">Olá, mundo!</div>
+```
+
+**Neste contexto, serão sinônimos**: UI, interface de usuário, *front-end*, *front*.
+
+
+## HTML, CSS, JS... pra que serve?
+
+Se você não conhece essas linguagens, uma boa maneira de entender o papel de cada uma delas na construção de um site é pensar em uma casa. 
+
+- Podemos pensar o HTML como a estrutura física da casa: chão, paredes, colunas, teto, encanamento, fiação etc.
+
+- O CSS é o responsável pela aparência: pintura, pisos, azulejos, decoração em geral.
+
+- O JavaScript traz funcionalidades a cada cômodo: pia, vaso sanitário, geladeira, cama, televisão e por aí vai.
+
+## Programando em HTML sem saber HTML
+
+Com o Shiny, podemos produzir aplicativos web em HTML, CSS e JavaScript sem saber programar nessas linguagens. E melhor: sem sair do R!
+
+<center>
+<img src="img/shiny.png" width = "50%">
+<img src="img/shiny2.png" width = "50%">
+<br>
+Fonte: <a href = http://www.rstudio.com/shiny/>rstudio.com/shiny/</a>
+</center>
+
+## Server: onde a mágica acontece {.smaller}
+
+A função `server()` vai receber nossos usuais códigos R de manipular bases, gerar tabelas, gráficos, mapas e qualquer outra visualização que quisermos construir.
+
+A função `server()` sempre terá os parâmetros:
+
+- `input`: uma lista com todos parâmetros que o usuário pode mexer.
+
+- `output`: uma lista com todas as visualizações que vamos mostrar para o usuário.
+
+- `session`: uma lista com informações da sessão que está rodando o aplicativo.
+
+**Neste contexto, serão sinônimos**: server, servidor, *back-end*.
+
+## Rodando um aplicativo {.smaller}
+
+Enquanto estamos desenvolvendo um aplicativo Shiny, queremos testá-lo localmente para verificar se tudo funciona corretamente. 
+
+> Testar localmente significa que **o seu próprio computador fará as vezes de servidor**, embora isso não signifique que seu app ficará disponível na internet.
+
+No RStudio, podemos rodar nossos apps:
+
+- rodando o script que contém o nosso app;
+
+- clicando no botão **Run App**;
+
+- rodando no console a função `runApp("caminho/ate/app.R)`.
+
+
+## O botão Run App
+
+```{r, echo = FALSE, fig.alt="Botão Run App no Rstudio. Fica logo acima do script."}
+knitr::include_graphics("img/botao_run_app.png")
+```
+
+Ao clicar nesse botão, o seu navegador padrão será aberto e você verá a UI do nosso modesto app com apenas a frase "Olá, mundo!".
+
+## Sessão ocupada {.smaller}
+
+Se você voltar ao RStudio, eventualmente vai notar algo muito importante: a sua sessão de R estará ocupada! Isso acontece porque todo Shiny app precisa de uma sessão de R rodando por trás.
+
+Essa sessão fornece a comunicação da UI (ou do nosso navegador) com o servidor e é responsável por atualizar as visualizações apresentadas na UI, sempre que alguém interagir com o app. Embora o nosso app *Olá, mundo* não possuir interatividade, a estrutura necessária para que a interatividade aconteça ainda assim é criada pelo Shiny.
+
+## Liberando a sessão e endereço do app {.smaller}
+
+Para liberar a sessão, basta clicar no botão "*stop*", na parte de cima do Console, ou pressionar a tecla `Esc`. Veja que, ao fazer isso, a tela do app ficará acizentada, indicando que ele foi desconectado do servidor e não funcionará mais corretamente.
+
+```{r, echo = FALSE, fig.alt="Console do RStudio com sinal de ocupado (stop).", out.width="60%"}
+knitr::include_graphics("img/console_sessao_ocupada.png")
+```
+
+Repare que a mensagem no Console representa o *endereço* do nosso aplicativo. Nesse caso, será um IP (`http://127.0.0.1`) com alguma porta que esteja disponível escolhida aleatoriamente (`:4028`). Esse endereço aparecerá no nosso navegador e poderemos copiá-lo e colá-lo em qualquer outra aba ou navegador que quisermos rodar o app.
+
+## Atividade
+
+Vamos criar e rodar o exemplo minimal do slide anterior.
+
+<center>
+<img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width = "300" height = "300">
+<br>
+<br>
+
+Ao RStudio: `01-ola-mundo.R`
+
+<center>
+
+# Interatividade
+
+## Inputs e Outputs
+
+Uma das principais tarefas no desenvolvimento de um Shiny app é a definição e construção dos inputs e outputs. São esses elementos que nos permitem interagir com o app.
+
+```{r, echo = FALSE}
+knitr::include_graphics("img/app_penguins_disp.png")
+```
+
+## Outputs: tabelas, gráficos e muito mais! {.smaller}
+
+Outputs representam as *saídas* do nosso aplicativo, isto é, tudo que queremos que nosso código R retorne para o usuário. Essas saídas podem ser tabelas, gráficos, mapas, texto, imagens ou qualquer outro elemento em HTML.
+
+Os outputs são definidos na UI e criados no server. Cada tipo de output é definido por uma função do tipo `*Output()`. Veja as principais funções dessa família:
+
+```{r, echo = FALSE, eval=TRUE, out.width="100%"}
+tibble::tribble(~Função, ~`Saída`,
+                "plotOutput()", "Gráficos",
+                "tableOutput()", "Tabelas",
+                "textOutput()", "Textos") %>%
+  reactable::reactable(
+    sortable = FALSE
+  )
+```
+
+## Funções render {.smaller}
+
+Para criar um output, precisamos das funções do tipo `render*()`. Essas funções são responsáveis por conectar as nossas visualizações criadas pelo R com o código HTML do UI. Na grande maioria dos casos, teremos o par `visualizacaoOutput()` `renderVisualizacao()`. 
+
+Veja a seguir as principais funções `render*()` e como elas se comunicam com as funções `*Output()`.
+
+```{r, echo = FALSE, eval=TRUE}
+tibble::tribble(~`*Output()`, ~`render*()`,
+                "plotOutput()", "renderPlot()",
+                "tableOutput()", "renderTable()",
+                "textOutput()", "renderText()") %>%
+  reactable::reactable(
+    sortable = FALSE
+  )
+```
+
+## Acessando outputs no server {.smaller}
+
+O argumento `outputId` das funções `_Output()` é utilizado para nos referirmos aos outputs dentro do server. Todos os outputs criados ficarão dentro da lista `output`.
+
+```{r, eval=FALSE}
+library(shiny)
+
+ui <- fluidPage(
+  "Histograma da variável mpg",
+  plotOutput(outputId = "histograma")
+)
+
+server <- function(input, output, session) {
+  
+  output$histograma <- renderPlot({
+    hist(mtcars$mpg)
+  })
+  
+}
+
+shinyApp(ui, server)
+```
+
+## Acessando outputs no server {.smaller}
+
+No código do slide anterior:
+
+- a função `plotOutput()` especifica o lugar na UI será colocado o histograma (no caso, logo abaixo do texto `"Histograma da variável mpg"`);
+
+- para criar o histograma, atribuímos o resultado da função `renderPlot()` ao valor `histograma` da lista `output`, mesmo nome dado ao argumento `outputId` na função `plotOutput()`;
+
+- a função `renderPlot()`, assim com qualquer outra função da família `render*()`, recebe como primeiro argumento o código para gerar o output;
+
+- o histograma é gerado com o código `hist(mtcars$mpg)`.
+
+## Atividade
+
+Vamos criar e rodar um shiny app com um gráfico como output.
+
+<br>
+
+<center>
+<img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width = "300" height = "300">
+<br>
+<br>
+Ao RStudio: `02-output.R`
+<center>
+
+## Inputs: dê controle ao usuário {.smaller}
+
+Inputs representam as entradas do nosso aplicativo, isto é, a maneira como informações são transmitidas entre a pessoa usando o app e o servidor. Essas informações podem ser valores, textos, datas, arquivos ou até mesmo cliques em um botão.
+
+Para facilitar a escolha desses valores, o pacote `shiny` possibilita diversas opções de *widgets*, a depender do tipo de valor a ser passado.
+
+Você pode conferir a lista de widgets do pacote `shiny` [nesta página](https://shiny.rstudio.com/gallery/widget-gallery.html). Repare que no campo `Current Value(s)` é mostrado qual valor será levado para dentro da função `server` em cada caso.
+
+## Criando inputs
+
+Para criar esses widgets utilizamos as famílias de funções `*Input()` ou `*Button`.
+
+De forma análoga ao `outputId` das funções `*Output()`, todas essas funções possuem `inputId` como primeiro argumento, que recebe uma string e será utilizado para acessar cada input dentro da função `server`.
+
+Isso implica que **dois inputs não podem ter o mesmo `inputId`**. Apenas o primeiro input funcionará caso você crie dois ou mais `inputId` repetidos.
+
+## Acessando os inputs no server {.smaller}
+
+Para acessar os inputs dentro da função server, utilizamos a lista `input`. Essa lista guardará todos os inputs criados no UI.
+
+:::: {.columns}
+
+::: {.column width="50%"}
+<img src="img/inputvalues.png" width= "100%">
+:::
+
+::: {.column width="50%"}
+<img src="img/sliderinputexample.png" width= "80%">
+- `input$num` pode ser usado no server para deixar as visualizações dinâmicas.
+:::
+
+::::
+
+<center>
+Fonte: <a href = http://www.rstudio.com/shiny/>rstudio.com/shiny/</a>
+</center>
+
+## Atividade
+
+Colocar um seletor de variáveis para permitir que o usuário escolha a variável exibida no histograma.
+
+<br>
+
+<center>
+<img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width = "300" height = "300">
+<br>
+<br>
+Ao RStudio: `03-output-input.R`
+</center>
+
+## Atividade
+
+Vamos fazer um app com dois pares input/output independentes.
+
+<br>
+
+<center>
+<img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width = "300" height = "300">
+<br>
+<br>
+Ao RStudio: `04-dois-inputs-outputs.R`
+</center>
+
+## Shinyapps.io {.smaller}
+
+O [shinyapps.io](https://www.shinyapps.io/) é um serviço do RStudio para hospedagem de Shiny apps.
+
+A conta gratuita permite você ter até 5 aplicações e 25 horas mensais de uso (um aplicativo utilizado por 1 hora consome 1 hora do seu plano, 2 aplicativos utilizados simultaneamente por 1 hora consomem 2 horas do seu plano).
+
+Criada uma conta, você poderá subir o seu app para o shinyapps.io diretamente do RStudio. Para isso, você precisará apenas conectar a sua conta com o RStudio.
+
+[Neste vídeo](https://www.youtube.com/watch?v=jRXubw0kOrg&ab_channel=Curso-R), mostramos como conectar o shinyapps.io com o RStudio.
+
+## Atividade
+
+Vamos conectar o nosso RStudio com o shinyapps.io e subir um app para lá.
+
+<br>
+
+<center>
+<img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width = "300" height = "300">
+<br>
+<br>
+
+Ao RStudio: `04-dois-inputs-outputs.R`
+
+</center>
+
+## Referências e material extra
+
+### Tutoriais
+
+- [Tutorial de Shiny do Garrett Grolemund](https://shiny.rstudio.com/tutorial/)
+
+- [Mastering Shiny](https://mastering-shiny.org/)
+
+- [Galeria do Shiny](https://shiny.rstudio.com/gallery/)

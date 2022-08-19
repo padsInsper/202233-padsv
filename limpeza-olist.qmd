@@ -1,0 +1,72 @@
+---
+title: "Limpeza"
+format: html
+---
+
+## Leitura
+
+```{r}
+#| message: false
+bruto <- fs::dir_ls("data-raw", regexp = "olist") |> 
+  purrr::map(readr::read_csv) |> 
+  tibble::enframe("arquivo", "base") |> 
+  dplyr::mutate(base = purrr::set_names(
+    base, 
+    basename(fs::path_ext_remove(arquivo)))
+  )
+```
+
+```{r}
+par(mar = c(0,0,0,0))
+plot(magick::image_read("https://i.imgur.com/HRhd2Y0.png"))
+```
+
+## Arrumação
+
+A arrumação possivelmente tem problemas. Não fiz o exercício do Durão 😬
+
+```{r}
+order_payments <- bruto$base$olist_order_payments_dataset |> 
+  dplyr::group_by(order_id) |> 
+  dplyr::summarise(
+    n_payments = dplyr::n_distinct(payment_type),
+    types = paste(sort(unique(payment_type)), collapse = ","),
+    payment_value = sum(payment_value, na.rm = TRUE)
+  )
+
+order_reviews <- bruto$base$olist_order_reviews_dataset |> 
+  dplyr::group_by(order_id) |> 
+  dplyr::summarise(
+    n_reviews = dplyr::n(),
+    score = min(review_score)
+  )
+
+location <- bruto$base$olist_geolocation_dataset |> 
+  dplyr::distinct(geolocation_zip_code_prefix, .keep_all = TRUE)
+
+items <- bruto$base$olist_order_items_dataset |> 
+  dplyr::inner_join(bruto$base$olist_orders_dataset, "order_id") |> 
+  dplyr::inner_join(bruto$base$olist_products_dataset, "product_id") |> 
+  dplyr::inner_join(bruto$base$olist_sellers_dataset, "seller_id") |> 
+  dplyr::inner_join(bruto$base$olist_customers_dataset, "customer_id") |> 
+  dplyr::left_join(order_payments, "order_id") |> 
+  dplyr::left_join(order_reviews, "order_id") |> 
+  dplyr::left_join(
+    location,
+    c("seller_zip_code_prefix" = "geolocation_zip_code_prefix")
+  ) |> 
+  dplyr::left_join(
+    location, 
+    c("customer_zip_code_prefix" = "geolocation_zip_code_prefix"),
+    suffix = c("_seller", "_customer")
+  )
+
+
+```
+
+## Exportação
+
+```{r}
+readr::write_rds(items, "data/olist_items.rds", compress = "xz")
+```
+
