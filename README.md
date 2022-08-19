@@ -19,13 +19,5 @@ Materiais públicos da disciplina de Prática Avançada de Data Science E Visual
 
 **Obs**: O plano poderá ser modificado com base no feedback de vocês.
 
-## [Formulário](https://docs.google.com/forms/d/e/1FAIpQLSegoM_8vAdzVwoRF_82zm_juOaAunIbx8grT7iQCBMs_M8m-Q/viewform?usp=sf_link)
-
 ## [Slides](https://padsInsper.github.io/202233-padsv/slides/)
 
-## Exercícios
-
-- Transformações básicas
-- Pivotagem
-- Joins
-- Feature engineering
