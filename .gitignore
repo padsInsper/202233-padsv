@@ -5,3 +5,4 @@
 slides/index.qmd
 data/
 slides/index_cache
+data-raw/*.csv
